@@ -2,57 +2,63 @@ from tkinter import *
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import mysql.connector
+import os
+
 z=mysql.connector.connect(
     host='localhost',
     user='root',
     passwd='jo7812002',
     )
 a=z.cursor()
-try:
-    a.execute("CREATE DATABASE passmanager")
-    a.execute("use passmanager")
-    a.execute("create table if not exists users(email varchar(60),username varchar(30) primary key,passwd varchar(32))")
-    print("table created")
-except:
-    a.execute("use passmanager")
-    print("table used")
+a.execute("use passmanager")
+#print("table used")
 #---------------------------------------------------------------------------------------------------------------------------
 root=Tk()
 root.title('Login')
 root.geometry('925x500+300+200')
 root.configure(bg="#fff")
 root.resizable(False,False)
+def new_acc():
+    root.destroy()
+    os.system('python signup.py')
+    #import signup.py
 def signin():
     username=user.get()
     password=code.get()
-    a.execute("SELECT username,passwd FROM users")
+    try:
+        a.execute("SELECT * FROM users WHERE USERNAME='%s' "%(username))
+    except:
+        messagebox.showerror("Invalid","User doesn't exist")
+        user.delete(0, 'end')
+        code.delete(0, 'end')
     re=a.fetchall()
-    for i in re:
-        print("username:",i[0],"\n","password:",i[1])
+    #print(re)
+    try:
+        if username==re[0][1] and password==re[0][2]:
+                user.delete(0, 'end')
+                code.delete(0, 'end')
+                '''screen=Toplevel(root)
+                screen.title("App")
+                screen.geometry('925x500+300+200')
+                screen.config(bg="white")
+                Label(screen,text='Login successfull',bg='#fff',font=('Calibri(body)',50,'bold')).pack(expand=True)
+                screen.mainloop()'''
+                root.destroy()
+                os.system('python home.py')
+        elif username!=re[0][1] and password!=re[0][2]:  
+            messagebox.showerror("Invalid","invalid username and password")
+               
+        elif password!=re[0][2]:
+            messagebox.showerror("Invalid","invalid password")
 
-        if username==i[0] and password==i[1]:
-            user.delete(0, 'end')
-            code.delete(0, 'end')
-            screen=Toplevel(root)
-            screen.title("App")
-            screen.geometry('925x500+300+200')
-            screen.config(bg="white")
+        elif username!=re[0][1]:
+            messagebox.showerror("Invalid","invalid username")
+    except:
+            messagebox.showerror("Invalid","invalid username and password")
+            
 
-            Label(screen,text='Password successfully Saved!',bg='#fff',font=('Calibri(body)',50,'bold')).pack(expand=True)
-
-            screen.mainloop()
-
-        elif username!=i[0] and password!=i[1]:  
-           messagebox.showerror("Invalid","invalid username and password")
-           
-        elif password!=i[1]:
-           messagebox.showerror("Invalid","invalid password")
-
-        elif username!=i[0]:
-           messagebox.showerror("Invalid","invalid username")    
-        
 img =ImageTk.PhotoImage(file='password.png')
-Label(root,image=img,bg='white',width=550,height=600).place(x=0,y=-60)
+Label(root,image=img,bg='white',width=500,height=500).place(x=0,y=0)
 
 frame=Frame(root,width=380,height=350,bg="white")
 frame.place(x=500,y=80)
@@ -101,7 +107,7 @@ Button(frame,width=39,pady=7,text='Sign in',bg='#57a1f8',fg='white',border=0,com
 label=Label(frame,text="Don't have an account ? ",fg='black',bg='white',font=('Microsft YaHei UI Light',9))
 label.place(x=35,y=270)
 
-signup= Button(frame,width=14,text='Create Account',border=0,bg='white',cursor='hand2',fg='#57a1f8')
+signup= Button(frame,width=14,text='Create Account',border=0,bg='white',cursor='hand2',fg='#57a1f8',command=new_acc)
 signup.place(x=170,y=270)
 
 root.mainloop()
